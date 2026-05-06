@@ -1,26 +1,30 @@
-# productos-service — Post-Contenido 1, Unidad 9
-
-**Patrones de Diseño de Software**  
+# productos-service — Post-Contenido 2, Unidad 9
+Patrones de Diseño de Software  
 Ingeniería de Sistemas — Universidad de Santander (UDES) — 2026  
 Estudiante: Johan Carreño
 
 ---
 
 ## Descripción del Proyecto
+Microservicio de gestión de productos desarrollado con Spring Boot 3.3, que amplía
+el Post-Contenido 1 agregando pruebas de integración para la capa de persistencia
+(@DataJpaTest) y la capa web (@WebMvcTest). Adicionalmente, se configura un pipeline
+de integración continua con GitHub Actions que ejecuta automáticamente las pruebas
+y genera un reporte de cobertura con JaCoCo en cada push al repositorio.
 
-Microservicio de gestión de productos desarrollado con **Spring Boot 3.3**, que implementa una capa de pruebas unitarias completa sobre la lógica de negocio del servicio. El proyecto aplica **JUnit 5** y **Mockito** para aislar y verificar el comportamiento del servicio sin depender de la base de datos real.
+---
 
-### Tecnologías utilizadas
-
+## Tecnologías utilizadas
 - Java 21
-- Spring Boot 3.3.x
+- Spring Boot 3.3.5
 - Spring Data JPA
-- H2 Database (en memoria)
-- Lombok
+- H2 Database (en memoria, scope test)
 - JUnit 5 (vía Spring Boot Starter Test)
 - Mockito 5
 - JaCoCo (reporte de cobertura)
+- GitHub Actions (CI/CD)
 - Maven
+
 ---
 
 ## Instrucciones de Ejecución
@@ -31,101 +35,93 @@ Microservicio de gestión de productos desarrollado con **Spring Boot 3.3**, que
 - Git
 
 ### 1. Clonar el repositorio
-
 ```bash
-git clone https://github.com/Johan09CD/Carre-o-post1-u9-Patrones
+git clone https://github.com/Johan09CD/Carre-o-post2-u9-Patrones
 ```
 
 ### 2. Compilar el proyecto
-
 ```bash
 mvn compile
 ```
 
-### 3. Ejecutar las pruebas unitarias
-
+### 3. Ejecutar todas las pruebas
 ```bash
 mvn test
 ```
 
 ### 4. Generar reporte de cobertura JaCoCo
-
 ```bash
-mvn test jacoco:report
+mvn verify
 ```
-
 Abre en el navegador: `target/site/jacoco/index.html`
 
 ### 5. Ejecutar la aplicación
-
 ```bash
 mvn spring-boot:run
 ```
+La aplicación estará disponible en: http://localhost:8080
 
-La aplicación estará disponible en: `http://localhost:8080`
+---
 
-### Endpoints disponibles
+## Endpoints disponibles
 
 | Método | URL | Descripción |
 |--------|-----|-------------|
-| POST | `/api/productos?nombre=X&precio=Y&stock=Z` | Crear producto |
-| GET | `/api/productos/{id}` | Buscar por ID |
-| PUT | `/api/productos/{id}/stock?nuevoStock=N` | Actualizar stock |
-| DELETE | `/api/productos/{id}` | Eliminar producto |
+| GET | /api/productos | Listar todos los productos |
+| POST | /api/productos?nombre=X&precio=Y&stock=Z | Crear producto |
+| GET | /api/productos/{id} | Buscar por ID |
+| PUT | /api/productos/{id}/stock?nuevoStock=N | Actualizar stock |
+| DELETE | /api/productos/{id} | Eliminar producto |
 
 ---
 
 ## Descripción de las Pruebas
 
-La suite `ProductoServiceImplTest` cubre los siguientes escenarios:
+### Pruebas de Integración — Repositorio (@DataJpaTest)
+La suite `ProductoRepositoryTest` verifica los métodos JPA contra H2 en memoria:
 
-### Casos exitosos (Happy Path)
 | Prueba | Descripción |
 |--------|-------------|
-| `crear_datosValidos_retornaProductoGuardado` | Verifica creación correcta y que `save()` es llamado una vez |
-| `buscarPorId_existente_retornaProducto` | Verifica retorno del producto cuando el ID existe |
-| `actualizarStock_stockValido_retornaProductoActualizado` | Verifica actualización de stock con valor válido |
-| `crear_stockCero_retornaProductoCreado` | Verifica que stock=0 es un valor válido |
+| save_asignaIdAutomaticamente | Verifica que al guardar se asigna un ID válido |
+| findById_existente_retornaProducto | Verifica retorno del producto cuando el ID existe |
+| findAll_retornaListaCompleta | Verifica que se retornan todos los productos guardados |
+| deleteById_eliminaProducto | Verifica que el producto es eliminado correctamente |
 
-### Casos de error
+### Pruebas de Integración — Controlador (@WebMvcTest)
+La suite `ProductoControllerTest` verifica la capa web con MockMvc:
+
 | Prueba | Descripción |
 |--------|-------------|
-| `buscarPorId_noExistente_lanzaRuntimeException` | Verifica excepción cuando el ID no existe |
-| `crear_nombreInvalido_lanzaIllegalArgumentException` | Parametrizada: null, vacío, espacios, tab, newline |
-| `crear_precioInvalido_lanzaIllegalArgumentException` | Parametrizada: 0.0, -1.0, -100.0, -0.01 |
-| `crear_stockNegativo_lanzaIllegalArgumentException` | Verifica excepción con stock negativo |
-| `crear_precioNulo_lanzaIllegalArgumentException` | Verifica excepción con precio null |
-| `actualizarStock_stockNegativo_lanzaIllegalArgumentException` | Verifica excepción al actualizar con stock negativo |
-| `eliminar_productoInexistente_lanzaRuntimeException` | Verifica que `deleteById` no se llama si el producto no existe |
+| listarProductos_retorna200ConLista | Verifica respuesta 200 con lista de productos |
+| crearProducto_datosValidos_retorna201 | Verifica respuesta 201 al crear un producto válido |
+| buscarProducto_noExistente_retorna404 | Verifica respuesta 404 cuando el producto no existe |
 
-### Verificación avanzada (ArgumentCaptor)
-| Prueba | Descripción |
-|--------|-------------|
-| `crear_nombreConEspacios_guardaNombreNormalizado` | Verifica que `strip()` se aplica antes de persistir |
-| `eliminar_productoExistente_llamaDeleteById` | Verifica secuencia: `findById` y `deleteById` llamados exactamente una vez |
+### Pruebas Unitarias — Servicio (Post-Contenido 1)
+La suite `ProductoServiceImplTest` cubre 20 escenarios incluyendo happy path,
+casos de error, pruebas parametrizadas y verificación con ArgumentCaptor.
 
 ---
 
 ## Evidencia de Pruebas en Verde
 
-### BUILD SUCCESS
-![BUILD SUCCESS](screenshots/01-mvn-compile-success.png)
-
-### Resultado de `mvn test`
-![Resultado mvn test](screenshots/02-mvn-test-build-success.png)
+### Resultado de mvn test (28 pruebas)
+![Pruebas en verde](screenshots/pruebas-verde.png)
 
 ### Reporte de cobertura JaCoCo
-![Reporte JaCoCo](screenshots/03-jacoco-coverage-report.png)
+![Reporte JaCoCo](screenshots/jacoco-report.png)
 
-### Pruebas en verde en el IDE
-![Pruebas en IDE](screenshots/04-tests-green-ide.png)
+### Pipeline GitHub Actions ens verde
+![Pipeline verde](screenshots/pipeline-verde.png)
 
 ---
 
 ## Conceptos Aplicados
 
-- **@Mock / @InjectMocks**: Aislamiento de la capa de servicio respecto al repositorio JPA
-- **@ParameterizedTest**: Reutilización de pruebas con múltiples valores de entrada sin duplicar código
-- **ArgumentCaptor**: Inspección de los objetos exactos pasados al mock para verificar transformaciones internas
-- **verifyNoInteractions**: Confirmación de que el repositorio no es invocado cuando una validación falla
-- **thenAnswer**: Simulación dinámica del comportamiento del repositorio al guardar
+- **@DataJpaTest**: Pruebas de integración de la capa de persistencia con H2 en memoria,
+  revirtiendo cada prueba en una transacción para garantizar aislamiento
+- **@WebMvcTest**: Pruebas de la capa web cargando únicamente el contexto MVC,
+  usando MockMvc para simular peticiones HTTP
+- **@MockBean**: Sustitución del servicio real por un mock en las pruebas del controlador
+- **GitHub Actions**: Pipeline de CI que ejecuta las pruebas automáticamente en cada
+  push y sube el reporte JaCoCo como artefacto descargable
+- **JaCoCo**: Herramienta de medición de cobertura de código integrada como plugin Maven
