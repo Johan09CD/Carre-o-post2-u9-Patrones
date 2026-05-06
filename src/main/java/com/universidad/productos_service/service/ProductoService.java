@@ -35,4 +35,10 @@ public interface ProductoService {
      * @throws RuntimeException si el producto no existe
      */
     void eliminar(Long id);
+
+    /**
+     * Retorna todos los productos registrados.
+     * @return Lista de productos
+     */
+    java.util.List<Producto> listarTodos();
 }

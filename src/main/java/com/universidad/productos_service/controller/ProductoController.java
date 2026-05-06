@@ -67,4 +67,9 @@ public class ProductoController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping
+    public ResponseEntity<?> listarTodos() {
+        return ResponseEntity.ok(productoService.listarTodos());
+    }
 }

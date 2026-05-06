@@ -55,4 +55,9 @@ public class ProductoServiceImpl implements ProductoService {
         buscarPorId(id); // Lanza RuntimeException si no existe
         productoRepository.deleteById(id);
     }
+
+    @Override
+    public java.util.List<Producto> listarTodos() {
+        return productoRepository.findAll();
+    }
 }
